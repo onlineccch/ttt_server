@@ -2,6 +2,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { Cluster } from "ioredis";
 import { createAdapter } from "@socket.io/redis-streams-adapter";
+import { EnvSettings } from "./utils/settings";
 
 (async () => {
   try {
@@ -85,8 +86,8 @@ import { createAdapter } from "@socket.io/redis-streams-adapter";
       console.log(`Connected ${socket.id}`);
     });
 
-    httpServer.listen(3333);
-    console.log(`Server listening at Port ${"3333"}...`);
+    httpServer.listen(EnvSettings.SOCKET_PORT);
+    console.log(`Server listening at Port ${EnvSettings.SOCKET_PORT}...`);
   } catch (err) {
     console.error(`Err ${err}`);
     return;
