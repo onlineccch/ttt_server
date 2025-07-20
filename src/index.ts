@@ -2,7 +2,8 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { Cluster } from "ioredis";
 import { createAdapter } from "@socket.io/redis-streams-adapter";
-import { EnvSettings } from "./utils/settings";
+import { EnvSettings } from "./conf/settings";
+import { logger } from "./conf/logger";
 
 (async () => {
   try {
@@ -50,24 +51,25 @@ import { EnvSettings } from "./utils/settings";
       }
     );
 
-    redisClient.on("connect", async () => {
-      console.log("✅ Connected to Redis cluster");
-
-      //Test cluster-specific operation
-      const ping = await redisClient.ping();
-      console.log("✅ Ping successful:", ping);
+    redisClient.on("connect", () => {
+      logger.info("✅ Connected to Redis cluster");
     });
 
-    redisClient.on("ready", () => {
-      console.log("✅ Redis cluster is ready for operations");
+    redisClient.on("ready", async () => {
+      logger.info("✅ Redis cluster is ready for operations");
+      //Test cluster-specific operation
+      const ping = await redisClient.ping();
+      if (ping == "PONG") {
+        logger.info("✅ Ping successful...");
+      }
     });
 
     redisClient.on("error", (err) => {
-      console.error("❌ Redis cluster error:", err);
+      logger.error("❌ Redis cluster error:", err);
     });
 
     redisClient.on("close", () => {
-      console.log("😒 Redis cluster connection closed");
+      logger.error("😒 Redis cluster connection closed");
     });
 
     redisClient.on("error", (err) => {
@@ -75,21 +77,21 @@ import { EnvSettings } from "./utils/settings";
     });
 
     const httpServer = createServer();
-    console.log("HTTP server created...");
+    logger.info("🚀 HTTP server created...");
 
     const io = new Server(httpServer, {
       adapter: createAdapter(redisClient),
     });
-    console.log("SocketIO server created...");
+    logger.info("🔥 SocketIO server created...");
 
     io.on("connection", (socket) => {
-      console.log(`Connected ${socket.id}`);
+      logger.info(`Connected ${socket.id}`);
     });
 
     httpServer.listen(EnvSettings.SOCKET_PORT);
-    console.log(`Server listening at Port ${EnvSettings.SOCKET_PORT}...`);
+    logger.info(`⬆️ Server listening at Port ${EnvSettings.SOCKET_PORT}...`);
   } catch (err) {
-    console.error(`Err ${err}`);
-    return;
+    logger.error(`❌ Err ${err}`);
+    process.exit(1);
   }
 })();
