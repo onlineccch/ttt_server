@@ -16,7 +16,10 @@ services:
       192.168.3.11:6379 
       192.168.3.12:6379 
       192.168.3.13:6379 
-      --cluster-replicas 0 --cluster-yes
+      192.168.3.14:6379 
+      192.168.3.15:6379 
+      192.168.3.16:6379 
+      --cluster-replicas 1 --cluster-yes
       "
   redis_1:
     image: redis:8.0.3-alpine
@@ -61,12 +64,61 @@ services:
       redis_network:
         ipv4_address: 192.168.3.13
 
+  redis_4:
+    image: redis:8.0.3-alpine
+    container_name: redis4
+    ports:
+      - "7004:6379"
+      - "16374:16379"
+    volumes:
+      - redis_node_4:/data
+    command: redis-server --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --cluster-announce-ip 192.168.3.14 --cluster-announce-port 6379 --cluster-announce-bus-port 16379 --appendonly yes
+    restart: always
+    networks:
+      redis_network:
+        ipv4_address: 192.168.3.14
+
+  redis_5:
+    image: redis:8.0.3-alpine
+    container_name: redis5
+    ports:
+      - "7005:6379"
+      - "16375:16379"
+    volumes:
+      - redis_node_5:/data
+    command: redis-server --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --cluster-announce-ip 192.168.3.15 --cluster-announce-port 6379 --cluster-announce-bus-port 16379 --appendonly yes
+    restart: always
+    networks:
+      redis_network:
+        ipv4_address: 192.168.3.15
+
+
+  redis_6:
+    image: redis:8.0.3-alpine
+    container_name: redis6
+    ports:
+      - "7006:6379"
+      - "16376:16379"
+    volumes:
+      - redis_node_6:/data
+    command: redis-server --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --cluster-announce-ip 192.168.3.16 --cluster-announce-port 6379 --cluster-announce-bus-port 16379 --appendonly yes
+    restart: always
+    networks:
+      redis_network:
+        ipv4_address: 192.168.3.16
+
 volumes:
   redis_node_1:
     driver: local
   redis_node_2:
     driver: local
   redis_node_3:
+    driver: local
+  redis_node_4:
+    driver: local
+  redis_node_5:
+    driver: local
+  redis_node_6:
     driver: local
   
 networks:
@@ -75,4 +127,4 @@ networks:
     ipam:
       config:
         - subnet: 192.168.3.0/24
-          gateway: 192.168.3.1
+          gateway: 192.168.3.254
