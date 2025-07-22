@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node dist/index.js",
     "build": "tsc",
-    "dev": "nodemon src/index.ts"
+    "dev": "nodemon src/index.ts",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -20,10 +21,13 @@
   "homepage": "https://github.com/onlineccch/ttt_server#readme",
   "description": "",
   "devDependencies": {
+    "@jest/globals": "^30.0.5",
     "@types/command-line-args": "^5.2.3",
     "@types/node": "^24.0.15",
     "dotenv": "^17.2.0",
+    "jest": "^30.0.5",
     "nodemon": "^3.1.10",
+    "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },

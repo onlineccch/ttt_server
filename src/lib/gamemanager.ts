@@ -1,16 +1,18 @@
 import { logger } from "../conf/logger";
+import { check_is_over } from "../utils/ttt_game";
 
 type MatchState = (0 | 1 | -1)[][];
 
 type GamePlayer = {
-  side: 0 | 1;
+  side: -1 | 1;
   id: string;
 };
 
 type GameMatch = {
-  turn: 0 | 1;
+  turn: -1 | 1;
   state: MatchState;
   isover: boolean;
+  winner: -1 | 1 | 0;
 };
 
 type GameRoom = {
@@ -54,7 +56,7 @@ export class GameManager {
     // create player 1
     const player1: GamePlayer = {
       id: p1,
-      side: 0,
+      side: -1,
     };
 
     // create player 2
@@ -65,13 +67,14 @@ export class GameManager {
 
     // create game match
     const match: GameMatch = {
-      turn: 0,
+      turn: -1,
       state: [
-        [-1, -1, -1],
-        [-1, -1, -1],
-        [-1, -1, -1],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
       ],
       isover: false,
+      winner: 0,
     };
 
     // set a new game match to room map
@@ -108,7 +111,7 @@ export class GameManager {
    * @param player *player who make the mark*
    * @param place *x,y point to place the mark*
    */
-  player_mark(room_id: string, player: 0 | 1, place: (0 | 1 | 2)[]) {
+  player_mark(room_id: string, player: -1 | 1, place: (0 | 1 | 2)[]) {
     const currGame = this.rooms.get(room_id);
 
     if (place.length != 2) {
@@ -121,19 +124,35 @@ export class GameManager {
       return;
     }
 
+    if (currGame.match.isover) {
+      logger.warn(`Current game is over...`);
+      return;
+    }
+
     if (currGame.match.turn != player) {
       logger.warn(`Wait for your turn...`);
       return;
     }
 
-    if (currGame.match.state[place[0]][place[1]] !== -1) {
+    if (currGame.match.state[place[0]][place[1]] !== 0) {
       logger.error(`Already mark on ${place[0]}, ${place[1]}`);
       return;
     }
 
     currGame.match.state[place[0]][place[1]] = player;
-    currGame.match.turn = player == 0 ? 1 : 0;
+    currGame.match.turn = player == 1 ? -1 : 1;
+
+    // check if the game is over
+    const currStatus = check_is_over(currGame.match.state);
+    currGame.match.isover = currStatus.is_over;
+    currGame.match.winner = currStatus.winner;
+
     logger.info(`Updated the game state of ${room_id}...`);
+
+    if (currStatus.is_over) {
+      logger.info(`Game ${room_id} is over...`);
+      return;
+    }
   }
 
   /**
