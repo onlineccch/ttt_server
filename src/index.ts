@@ -4,6 +4,8 @@ import { Cluster } from "ioredis";
 import { createAdapter } from "@socket.io/redis-streams-adapter";
 import { EnvSettings } from "./conf/settings";
 import { logger } from "./conf/logger";
+import { roomCreationEvent, roomJoinEvent } from "./socket/events";
+import { optSettings } from "./conf/args";
 
 (async () => {
   try {
@@ -57,6 +59,7 @@ import { logger } from "./conf/logger";
 
     redisClient.on("ready", async () => {
       logger.info("✅ Redis cluster is ready for operations");
+
       //Test cluster-specific operation
       const ping = await redisClient.ping();
       if (ping == "PONG") {
@@ -81,15 +84,32 @@ import { logger } from "./conf/logger";
 
     const io = new Server(httpServer, {
       adapter: createAdapter(redisClient),
+      cors: {
+        origin: "*",
+      },
     });
     logger.info("🔥 SocketIO server created...");
 
     io.on("connection", (socket) => {
-      logger.info(`Connected ${socket.id}`);
+      logger.info(`🔗 New socket client connected: ${socket.id}`);
+
+      socket.on("message", (pl) => {
+        socket.broadcast.emit("message", pl);
+      });
+
+      // Receive Event for room creation
+      socket.on("create_room", () => roomCreationEvent(socket));
+
+      // Receive Event for joining room
+      socket.on("join_room", () => roomJoinEvent(socket));
     });
 
-    httpServer.listen(EnvSettings.SOCKET_PORT);
-    logger.info(`⬆️ Server listening at Port ${EnvSettings.SOCKET_PORT}...`);
+    httpServer.listen(optSettings["port"] || EnvSettings.SOCKET_PORT);
+    logger.info(
+      `⬆️ Server listening at Port ${
+        optSettings["port"] || EnvSettings.SOCKET_PORT
+      }...`
+    );
   } catch (err) {
     logger.error(`❌ Err ${err}`);
     process.exit(1);

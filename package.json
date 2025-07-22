@@ -20,6 +20,7 @@
   "homepage": "https://github.com/onlineccch/ttt_server#readme",
   "description": "",
   "devDependencies": {
+    "@types/command-line-args": "^5.2.3",
     "@types/node": "^24.0.15",
     "dotenv": "^17.2.0",
     "nodemon": "^3.1.10",
@@ -28,6 +29,7 @@
   },
   "dependencies": {
     "@socket.io/redis-streams-adapter": "^0.2.2",
+    "command-line-args": "^6.0.1",
     "ioredis": "^5.6.1",
     "redis": "^5.6.0",
     "socket.io": "^4.8.1",
