@@ -6,6 +6,7 @@ import { EnvSettings } from "./conf/settings";
 import { logger } from "./conf/logger";
 import { roomCreationEvent, roomJoinEvent } from "./socket/events";
 import { optSettings } from "./conf/args";
+import { GameManager } from "./lib/gamemanager";
 
 (async () => {
   try {
@@ -90,6 +91,9 @@ import { optSettings } from "./conf/args";
     });
     logger.info("🔥 SocketIO server created...");
 
+    const gm = new GameManager();
+    logger.info("🕹️ Initiated game manager...");
+
     io.on("connection", (socket) => {
       logger.info(`🔗 New socket client connected: ${socket.id}`);
 
@@ -98,10 +102,12 @@ import { optSettings } from "./conf/args";
       });
 
       // Receive Event for room creation
-      socket.on("create_room", () => roomCreationEvent(socket));
+      socket.on("create_room", (callback) =>
+        roomCreationEvent(socket, gm, callback)
+      );
 
       // Receive Event for joining room
-      socket.on("join_room", () => roomJoinEvent(socket));
+      socket.on("join_room", () => roomJoinEvent(socket, gm));
     });
 
     httpServer.listen(optSettings["port"] || EnvSettings.SOCKET_PORT);

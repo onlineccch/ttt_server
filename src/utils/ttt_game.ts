@@ -3,7 +3,9 @@ type MatchStatus = {
   winner: -1 | 0 | 1;
 };
 
-export const check_is_over = (state: (0 | 1 | -1)[][]): MatchStatus => {
+export const check_is_over = async (
+  state: (0 | 1 | -1)[][]
+): Promise<MatchStatus> => {
   const lines = [
     // row
     [state[0][0], state[0][1], state[0][2]],
