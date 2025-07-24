@@ -94,6 +94,40 @@ import { GameManager } from "./lib/gamemanager";
     const gm = new GameManager();
     logger.info("🕹️ Initiated game manager...");
 
+    // handle create socket room
+    io.of("/").adapter.on("create-room", (room) => {
+      logger.info(`🛖 New room ${room} was created.`);
+    });
+
+    // handle delete socket room
+    io.of("/").adapter.on("delete-room", (room) => {
+      logger.info(`❌ Room ${room} was deleted.`);
+    });
+
+    // handle leave socket room
+    io.of("/").adapter.on("leave-room", (room, id) => {
+      logger.info(`➖ ${id} left the room ${room}`);
+    });
+
+    // handle join socket room
+    io.of("/").adapter.on("join-room", (room, id) => {
+      logger.info(`➕ Socket ${id} has joined the room ${room}`);
+
+      const currRoom = io.of("/").adapter.rooms.get(room);
+
+      if (!!currRoom) {
+        logger.info(`🛖 Room ${room} has ${currRoom.size} members now.`);
+
+        if (currRoom.size == 2) {
+          let players: string[] = [];
+
+          currRoom.forEach((el) => players.push(el));
+
+          gm.create_room(room, players[0], players[1]);
+        }
+      }
+    });
+
     io.on("connection", (socket) => {
       logger.info(`🔗 New socket client connected: ${socket.id}`);
 
@@ -102,12 +136,14 @@ import { GameManager } from "./lib/gamemanager";
       });
 
       // Receive Event for room creation
-      socket.on("create_room", (callback) =>
+      socket.on("create_room", (_, callback) =>
         roomCreationEvent(socket, gm, callback)
       );
 
       // Receive Event for joining room
-      socket.on("join_room", () => roomJoinEvent(socket, gm));
+      socket.on("join_room", (pl, callback) =>
+        roomJoinEvent(socket, pl, gm, callback)
+      );
     });
 
     httpServer.listen(optSettings["port"] || EnvSettings.SOCKET_PORT);
