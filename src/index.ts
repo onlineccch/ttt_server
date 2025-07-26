@@ -4,7 +4,12 @@ import { Cluster } from "ioredis";
 import { createAdapter } from "@socket.io/redis-streams-adapter";
 import { EnvSettings } from "./conf/settings";
 import { logger } from "./conf/logger";
-import { roomCreationEvent, roomJoinEvent } from "./socket/events";
+import {
+  checkGameEvent,
+  markPlaceEvent,
+  roomCreationEvent,
+  roomJoinEvent,
+} from "./socket/events";
 import { optSettings } from "./conf/args";
 import { GameManager } from "./lib/gamemanager";
 
@@ -143,6 +148,15 @@ import { GameManager } from "./lib/gamemanager";
       // Receive Event for joining room
       socket.on("join_room", (pl, callback) =>
         roomJoinEvent(socket, pl, gm, callback)
+      );
+
+      // Receive Event for mark place
+      socket.on("mark_place", (pl, callback) =>
+        markPlaceEvent(socket, pl, gm, callback)
+      );
+
+      socket.on("check_game", (pl, callback) =>
+        checkGameEvent(socket, pl, gm, callback)
       );
     });
 

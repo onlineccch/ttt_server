@@ -170,28 +170,23 @@ export class GameManager {
     const currGame = this.rooms.get(room_id);
 
     if (place.length != 2) {
-      logger.error(`Invalid place to mark ${room_id}...`);
-      return;
+      throw `Invalid place to mark ${room_id}...`;
     }
 
     if (!currGame) {
-      logger.error(`Found no room of ${room_id} to update...`);
-      return;
+      throw `Found no room of ${room_id} to update...`;
     }
 
     if (currGame.match.isover) {
-      logger.warn(`Current game is over...`);
-      return;
+      throw `Current game is over...`;
     }
 
     if (currGame.match.turn != player) {
-      logger.warn(`Wait for your turn...`);
-      return;
+      throw `Wait for your turn...`;
     }
 
     if (currGame.match.state[place[0]][place[1]] !== 0) {
-      logger.error(`Already mark on ${place[0]}, ${place[1]}`);
-      return;
+      throw `Already mark on ${place[0]}, ${place[1]}`;
     }
 
     await this.mutex.runExclusive(async () => {
